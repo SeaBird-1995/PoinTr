@@ -1,0 +1,5 @@
+NAME: ShapeNetViPC
+data_path: data/ShapeNetViPC-Dataset
+pc_input_num: 2048
+category: all
+total_views: 24
