@@ -1,6 +1,6 @@
 # from tools import run_net
 from tools.runner_vipc import run_net
-from tools import test_net
+from tools.runner_vipc import test_net
 from utils import parser, dist_utils, misc
 from utils.logger import *
 from utils.config import *
