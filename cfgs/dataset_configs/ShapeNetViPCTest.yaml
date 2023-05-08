@@ -1,4 +1,4 @@
-NAME: ShapeNetViPC
+NAME: ViPCTestDataset
 data_path: data/ShapeNetViPC-Dataset
 pc_input_num: 2048
 category: watercraft

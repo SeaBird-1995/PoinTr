@@ -10,6 +10,12 @@ from models import build_model_from_cfg
 from utils.logger import *
 from utils.misc import *
 
+
+def collate_fn(batch):
+    batch = list(filter(lambda x: x is not None, batch))
+    return torch.utils.data.dataloader.default_collate(batch)
+
+
 def dataset_builder(args, config):
     dataset = build_dataset_from_cfg(config._base_, config.others)
     shuffle = config.others.subset == 'train'
@@ -24,6 +30,7 @@ def dataset_builder(args, config):
         sampler = None
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=config.others.bs,
                                                 shuffle = shuffle, 
+                                                collate_fn=collate_fn,
                                                 drop_last = config.others.subset == 'train',
                                                 num_workers = int(args.num_workers),
                                                 worker_init_fn=worker_init_fn)
