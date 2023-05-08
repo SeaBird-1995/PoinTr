@@ -9,6 +9,6 @@
 #     --exp_name shapenetvipc --num_workers 16 --val_freq 10
 
 set -x
-bash ./scripts/train.sh 0 \
+bash ./scripts/train.sh 2 \
     --config ./cfgs/ShapeNetViPC_models/PoinTr_Original_Split.yaml \
-    --exp_name lamp --num_workers 16 --val_freq 10
+    --exp_name vipc_watercraft --num_workers 16 --val_freq 10

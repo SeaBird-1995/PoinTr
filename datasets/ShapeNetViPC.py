@@ -38,6 +38,33 @@ SYNSET_MAP = {
 }
 
 
+def rotation_z(pts, theta):
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+    rotation_matrix = np.array([[cos_theta, -sin_theta, 0.0],
+                                [sin_theta, cos_theta, 0.0],
+                                [0.0, 0.0, 1.0]])
+    return pts @ rotation_matrix.T
+
+
+def rotation_y(pts, theta):
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+    rotation_matrix = np.array([[cos_theta, 0.0, -sin_theta],
+                                [0.0, 1.0, 0.0],
+                                [sin_theta, 0.0, cos_theta]])
+    return pts @ rotation_matrix.T
+
+
+def rotation_x(pts, theta):
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+    rotation_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, cos_theta, -sin_theta],
+                                [0.0, sin_theta, cos_theta]])
+    return pts @ rotation_matrix.T
+
+
 @DATASETS.register_module()
 class ShapeNetViPCOrigin(Dataset):
     """The original ShapeNet-ViPC dataset without view images information.
@@ -54,10 +81,11 @@ class ShapeNetViPCOrigin(Dataset):
         pc_input_num = config.pc_input_num
         category = config.category
 
+        self.view_align = False
+
         self.pc_input_num = pc_input_num
         self.status = status
         self.filelist = []
-        self.cat = []
         self.key = []
 
         self.imcomplete_path = os.path.join(data_path,'ShapeNetViPC-Partial')
@@ -84,11 +112,20 @@ class ShapeNetViPCOrigin(Dataset):
         category_id, object_id, view_id = key.strip().split(';')
        
         pc_part_path = os.path.join(self.imcomplete_path, category_id, object_id, f'{view_id}.dat')
-        pc_path = os.path.join(self.gt_path, category_id, object_id, f'{view_id}.dat')
+
+        if self.view_align:
+            rand_view_id = view_id
+        else:
+            rand_view_id = str(random.randint(0, 23)).rjust(2, '0')
+
+        pc_path = os.path.join(self.gt_path, category_id, object_id, f'{rand_view_id}.dat')
 
         if not os.path.exists(pc_path):
             # print(f"[WARNING] {pc_path} is not exist....")
             return None
+        
+        view_metadata = np.loadtxt(os.path.join(self.rendering_path, 
+                                                category_id, object_id, "rendering/rendering_metadata.txt"))
         
         # load gt
         with open(pc_path,'rb') as f:
@@ -99,6 +136,17 @@ class ShapeNetViPCOrigin(Dataset):
         # incase some item point number less than 3500 
         if pc_part.shape[0]<self.pc_input_num:
             pc_part = np.repeat(pc_part,(self.pc_input_num//pc_part.shape[0])+1,axis=0)[0:self.pc_input_num]
+
+        part_view_id = view_id
+        image_view_id = rand_view_id
+        theta_part = math.radians(view_metadata[int(part_view_id),0])
+        phi_part = math.radians(view_metadata[int(part_view_id),1])
+
+        theta_img = math.radians(view_metadata[int(image_view_id),0])
+        phi_img = math.radians(view_metadata[int(image_view_id),1])
+
+        pc_part = rotation_y(rotation_x(pc_part, - phi_part),np.pi + theta_part)
+        pc_part = rotation_x(rotation_y(pc_part, np.pi - theta_img), phi_img)
 
         # normalize partial point cloud and GT to the same scale
         gt_mean = pc.mean(axis=0) 
@@ -111,8 +159,8 @@ class ShapeNetViPCOrigin(Dataset):
 
         return {'taxonomy_id': category_id, 
                 'model_id': object_id,
-                'pc_gt': torch.from_numpy(pc), 
-                'pc_partial': torch.from_numpy(pc_part)}  # pc: (N, 3), pc_part: (N, 3)
+                'pc_gt': torch.from_numpy(pc).to(torch.float32), 
+                'pc_partial': torch.from_numpy(pc_part).to(torch.float32)}  # pc: (N, 3), pc_part: (N, 3)
 
     def __len__(self):
         return len(self.key)
