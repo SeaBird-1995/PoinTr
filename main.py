@@ -1,5 +1,6 @@
-from tools import run_net
-from tools import test_net
+# from tools import run_net
+from tools.runner import run_net
+from tools.runner import test_net
 from utils import parser, dist_utils, misc
 from utils.logger import *
 from utils.config import *
@@ -44,6 +45,8 @@ def main():
         config.dataset.train.others.bs = config.total_bs // world_size
     else:
         config.dataset.train.others.bs = config.total_bs
+        config.dataset.test.others.bs = config.total_bs
+    
     # log 
     log_args_to_file(args, 'args', logger = logger)
     log_config_to_file(config, 'config', logger = logger)

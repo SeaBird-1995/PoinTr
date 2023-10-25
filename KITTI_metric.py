@@ -34,6 +34,7 @@ def get_Fidelity():
     for sample in Samples:
         input_data = torch.from_numpy(np.load(os.path.join(Data_path, sample, 'input.npy'))).unsqueeze(0).cuda()
         pred_data = torch.from_numpy(np.load(os.path.join(Data_path, sample, 'pred.npy'))).unsqueeze(0).cuda()
+        print(input_data.shape, pred_data.shape)
         metric.append(criterion(input_data, pred_data)[0])
     print('Fidelity is %f' % (sum(metric)/len(metric)))
 
