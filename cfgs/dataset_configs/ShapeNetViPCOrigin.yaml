@@ -1,4 +1,4 @@
 NAME: ShapeNetViPCOrigin
 data_path: data/ShapeNetViPC-Dataset
 pc_input_num: 3500
-category: watercraft
+category: chair

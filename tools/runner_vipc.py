@@ -157,6 +157,10 @@ def run_net(args, config, train_writer=None, val_writer=None):
                 best_metrics = metrics
                 builder.save_checkpoint(base_model, optimizer, epoch, metrics, best_metrics, 'ckpt-best', args, logger = logger)
         builder.save_checkpoint(base_model, optimizer, epoch, metrics, best_metrics, 'ckpt-last', args, logger = logger)      
+        
+        if best_metrics is not None:
+            print_log("Best Metrics: " + best_metrics, logger=logger)
+
         if (config.max_epoch - epoch) < 10:
             builder.save_checkpoint(base_model, optimizer, epoch, metrics, best_metrics, f'ckpt-epoch-{epoch:03d}', args, logger = logger)     
     train_writer.close()
